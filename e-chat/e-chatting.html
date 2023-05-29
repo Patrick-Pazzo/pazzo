@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Patrick pp PaZzo E-Chatting CBGII</title>
+  <style>
+    body {
+      font-family:Jokerman;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px #111,0 -2px 5px #111;
+      text-align: center;
+    }
+
+  div.user-login {
+  background-color: #f5f5f5;
+  border-radius: 5px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0px 2px 4px #222,0px -2px 4px #222;
+}
+
+div.user-login h3 {
+  margin-bottom: 10px;
+}
+
+div.user-login input[type="text"] {
+  width: 100%;
+  padding: 5px;
+  border: 2px solid #222;
+  border-radius: 8px;
+  height: 30px;
+
+}
+
+div.user-login button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 3px;
+  background-color: black;
+  color: white;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+div.user-login button:hover {
+  background-color: #333;
+}
+
+   
+    .chat,
+    .input {
+      display: none;
+    }
+
+    .chat {
+      margin-top: 20px;
+      height: 400px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      overflow-y: scroll;
+      padding: 10px;
+      box-shadow: 0px 2px 5px #222;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 20px;
+      font-family: sans-serif;
+      width: 80%;
+      margin-left: 10px;
+      
+
+    }
+
+    .sender-message {
+      background-color: #222;
+      text-align: left;
+      color: white;
+      
+    }
+
+    .receiver-message {
+      background-color: white;
+      color: black;
+      text-align: right;
+      margin-right: 20px;
+      box-shadow: 0px 1px 2px #222;
+      font-weight: 800;
+      font-weight: bold;
+
+    }
+
+    .input {
+      margin-top: 20px;
+    }
+
+    .input input[type="text"] {
+      width: 70%;
+      padding: 5px;
+      border-radius: 3px;
+      border: 2px solid #222;
+      height: 30px;
+    }
+
+    .input button {
+      padding: 5px ;
+      border-radius: 3px;
+      background-color: black;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      height: 40px;
+      width: 80px;
+    }
+
+    .input button:hover {
+     opacity: 0.7;
+    }
+   .select {
+  width: 100%;
+  padding: 5px;
+  border-radius: 3px;
+  border: 2px solid #222;
+  height: 35px;
+  font-family: sans-serif;
+
+}
+
+.select option {
+  padding: 5px;
+  font-family: sans-serif;
+}
+
+
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+</head>
+<body>
+  <div class="container">
+  <h1>Patrick PaZzo E-Chatting CBGII</h1>
+
+  
+    <div class="user-login" id="user-login">
+      <h3>Login</h3>
+      <input type="text" id="username" placeholder="Enter your username" />
+      <button onclick="login()">Login</button>
+    </div>
+
+    <div class="chat" id="chat">
+      <h3>Welcome <span id="username-display"></span>!</h3>
+      <select id="recipient" onchange="changeRecipient()" class="select">
+        <option value="">Select Your Friend </option>
+        <option value="pazzo">pazzo</option>
+        <option value="patrick">patrick</option>
+        <option value="guillen">guillen</option>
+        <option value="no one">no one </option>
+      </select>
+      <ul class="message-list" id="message-list"></ul>
+    </div>
+
+    <div class="input" id="input">
+      <input type="text" id="message" placeholder="Enter your message" />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    // Replace with your Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyC-IpHl_vRJa_purEREuRJNLWmUIK_y_H8",
+      authDomain: "e-chatting-pazzo.firebaseapp.com",
+      databaseURL: "https://e-chatting-pazzo-default-rtdb.firebaseio.com",
+      projectId: "e-chatting-pazzo",
+      storageBucket: "e-chatting-pazzo.appspot.com",
+      messagingSenderId: "547012083476",
+      appId: "1:547012083476:web:777ac49d542ae605ab4c01",
+      measurementId: "G-Z1CNWBKVVJ"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    var database = firebase.database();
+    var messageList = document.getElementById("message-list");
+    var currentUser = null;
+    var recipient = null;
+
+    function login() {
+      var usernameInput = document.getElementById("username");
+      var username = usernameInput.value.trim();
+
+      if (username !== "") {
+        currentUser = {
+          id: Date.now().toString(), 
+          username: username
+        };
+
+        document.getElementById("username-display").innerText = currentUser.username;
+        document.getElementById("user-login").style.display = "none";
+        document.getElementById("chat").style.display = "block";
+        document.getElementById("input").style.display = "block";
+
+        startChat();
+      }
+    }
+
+    function startChat() {
+      database.ref("users").on("child_added", function (snapshot) {
+        var user = snapshot.val();
+        if (user.username !== currentUser.username) {
+          var option = document.createElement("option");
+          option.value = user.username;
+          option.textContent = user.username;
+          document.getElementById("recipient").appendChild(option);
+        }
+      });
+
+      database.ref("messages").on("child_added", function (snapshot) {
+        var messageData = snapshot.val();
+        var sender = messageData.sender;
+        var recipient = messageData.recipient;
+        var message = messageData.message;
+
+        if (
+          (sender === currentUser.username && recipient === getCurrentRecipient()) ||
+          (sender === getCurrentRecipient() && recipient === currentUser.username)
+        ) {
+          var messageElement = document.createElement("li");
+          messageElement.classList.add("message");
+
+          if (sender === currentUser.username) {
+            messageElement.classList.add("sender-message");
+          } else {
+            messageElement.classList.add("receiver-message");
+          }
+
+          messageElement.innerText = message;
+          messageList.appendChild(messageElement);
+          messageList.scrollTop = messageList.scrollHeight;
+        }
+      });
+    }
+
+    function getCurrentRecipient() {
+      return document.getElementById("recipient").value;
+    }
+
+    function changeRecipient() {
+      messageList.innerHTML = "";
+    }
+
+    function sendMessage() {
+      var messageInput = document.getElementById("message");
+      var message = messageInput.value.trim();
+      var recipient = getCurrentRecipient();
+
+      if (message !== "" && recipient !== "") {
+        var messageData = {
+          sender: currentUser.username,
+          recipient: recipient,
+          message: message
+        };
+
+        database.ref("messages").push().set(messageData);
+
+        messageInput.value = "";
+      }
+    }
+
+    
+  </script>
+</body>
+</html>
